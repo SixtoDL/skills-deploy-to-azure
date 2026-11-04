@@ -1,22 +1,40 @@
-name: Learning GitHub Script
+name: Create GitHub Issue
+
 on:
-  issues:
-    types: [opened]
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
 jobs:
-  comment:
+  create-issue:
     runs-on: ubuntu-latest
+
     steps:
-    - uses: actions/github-script@0.8.0
-      with:
-        script: |
-            github.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: "🎉 You've created this issue comment using GitHub Script!!!"
-            })
-            github.projects.createCard({
-            column_id: {{columnID}},
-            content_id: context.payload.issue.id,
-            content_type: "Issue"
+      - name: Create Issue using GitHub Script
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: 'Error detectado en la aplicación',
+              body: `
+              ## Descripción
+
+              Se ha identificado un problema que requiere investigación.
+
+              ## Tareas pendientes
+
+              - [ ] Revisar los logs de la aplicación.
+              - [ ] Identificar la causa del problema.
+              - [ ] Implementar una solución.
+              - [ ] Ejecutar pruebas.
+
+              **Creado automáticamente mediante GitHub Actions.**
+              `,
+              labels: ['bug']
             });
+
+            core.info(`Issue creado correctamente: #${issue.data.number}`);
+            core.info(`URL: ${issue.data.html_url}`);
